@@ -1,10 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as ts from 'typescript';
 import { join } from 'path';
-import { readFileSync } from 'fs';
-import { convertJsToTs } from './rename-js-to-ts';
+
+import { processServices } from './tools/process-services';
 
 const rootAppDir = '/app';
 
@@ -16,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "apollon" is now active!');
 
-	// The command has been defined in the package.json file
+	// The command has been defined in the package.json file1
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('extension.apollon', async() => {
@@ -28,15 +27,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.window.showInformationMessage('Start renaming files from js to ts');
 
-		const items = await vscode.workspace.findFiles(
-			{base: rootPath, pattern: '**/*.js'},
-			{base: rootPath, pattern: '**/*.spec.js'});
-
-		const sourceFile = ts.createSourceFile(items[507].path, readFileSync(items[507].path).toString(), ts.ScriptTarget.TS, true);
-		console.log(111111, items[507].path, sourceFile);
-
-		// items.forEach(convertJsToTs);
-		// vscode.window.showInformationMessage('Stop renaming files from js to ts');
+		// await processComponents({base: rootPath, pattern: '**/*component.{js,ts}'});
+		// resolve
+		await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config}.js'});
+		// await processPipes({base: rootPath, pattern: '**/*pipe.{js,ts}'});
+		// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
+		// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
 	});
 
 	context.subscriptions.push(disposable);
@@ -44,3 +40,36 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+// async function processComponents(globPath: {base: string; pattern: string}) {
+// 	const tool = require('./tools/process-components');
+// 	const files = await vscode.workspace.findFiles(globPath);
+//
+// 	tool(files);
+// }
+
+async function convertService(globPath: {base: string; pattern: string}) {
+	const files = await vscode.workspace.findFiles(globPath);
+	processServices(files);
+}
+
+// async function processPipes(globPath: {base: string; pattern: string}) {
+// 	const tool = require('./tools/process-services');
+// 	const files = await vscode.workspace.findFiles(globPath);
+// 	tool(files);
+// }
+
+// async function processTemplates(globPath: {base: string; pattern: string}, componentGlobPath: {base: string; pattern: string}) {
+// 	const tool = require('./tools/process-templates');
+// 	const files = await vscode.workspace.findFiles(globPath);
+// 	const componentFiles = await vscode.workspace.findFiles(componentGlobPath);
+// 	tool(files, componentFiles);
+// }
+//
+// async function processFiles(globPath: {base: string; pattern: string}) {
+// 	const tool = require('./tools/process-files');
+// 	const files = await vscode.workspace.findFiles(globPath);
+// 	tool(files);
+// }
+//
+//
