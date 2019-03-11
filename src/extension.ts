@@ -25,11 +25,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 		const rootPath = join(vscode.workspace.rootPath as string, rootAppDir);
 
-		vscode.window.showInformationMessage('Start renaming files from js to ts');
-
 		// await processComponents({base: rootPath, pattern: '**/*component.{js,ts}'});
 		// resolve
+		vscode.window.showInformationMessage('Start migration services');
 		await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config}.js'});
+		vscode.window.showInformationMessage('Finished migration services');
 		// await processPipes({base: rootPath, pattern: '**/*pipe.{js,ts}'});
 		// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
 		// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
@@ -50,7 +50,7 @@ export function deactivate() {}
 
 async function convertService(globPath: {base: string; pattern: string}) {
 	const files = await vscode.workspace.findFiles(globPath);
-	processServices(files);
+	await processServices(files);
 }
 
 // async function processPipes(globPath: {base: string; pattern: string}) {

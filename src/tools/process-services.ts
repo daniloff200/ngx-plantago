@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 import { Uri } from 'vscode';
+import * as vscode from 'vscode';
 
 import { getSourceFile } from '../lib/get-source-file';
 import { serviceImports } from '../lib/services/service-imports';
@@ -11,9 +12,12 @@ import { getOutputFilePath } from '../lib/get-output-file-path';
 import { writeFile } from '../lib/write-file';
 import { getServiceData } from '../lib/services/get-service-data';
 
-export function processServices(files: Uri[]) {
-  files.forEach(file => {
-    console.log(`Processing: ${path.basename(file.path)}`);
+export async function processServices(files: Uri[]) {
+  await Promise.all(files.map(async (file, index) => {
+    // const pieces = file.path.split('/');
+    // const fileName = pieces[pieces.length - 1];
+    vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Start processing the "${path.basename(file.path)}" file`);
+    console.log(`Processing: ${path.basename(file.path)} - (${index + 1}/${files.length})`);
 
     // Read and parse the file's code
     let ast = getSourceFile(file);
@@ -27,21 +31,12 @@ export function processServices(files: Uri[]) {
 
     // Now we are modifying the AST
 
-    // Remove all the $injects
-    // ast = remove$Injects(ast);
-
-    // Remove the existing imports
-    // ast = removeImports(ast);
-
-    // Remove $q, $timeout and $interval from the constructor
-    // ast = removeFromConstructor(ast, ['$q', '$timeout', '$interval']);
-
     let code = `${imports}${'\n'}
     @Injectable()
     export class ${service.serviceName} {
       ${service.declarationVariables}${'\n'}
       ${genConstructor(service.serviceInjects, service.constructorInit)}${'\n'}
-      ${syncInjectsVariables(service.serviceInjects, service.variables, service.serviceMethods)}
+      ${syncInjectsVariables(service.serviceInjects, service.declaredVariables, service.declaredMethods, service.serviceMethods)}
     }`;
 
     // Do a bunch of string replacements
@@ -54,10 +49,9 @@ export function processServices(files: Uri[]) {
     const outputFilePath = getOutputFilePath(file);
     writeFile(outputFilePath, code);
 
-    console.log(`    Created: ${path.basename(outputFilePath)}\n`);
-  });
-
-  console.log(`Converted ${files.length} models/services.\n\n`);
+    vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Finished processing the "${path.basename(file.path)}" file`);
+    console.log(`Converted: ${path.basename(file.path)} - (${index + 1}/${files.length}):`);
+  }));
 }
 
 function genConstructor(injects: string[], constructorInit: string) {
@@ -80,16 +74,20 @@ function camelize(str: string) {
   }).replace(/\s+/g, '');
 }
 
-function syncInjectsVariables(injects: string[], variables: string[], results: string) {
+function syncInjectsVariables(injects: string[], declaredVariables: string[], declaredMethods: string[], results: string) {
   const replacements: [RegExp, string][] = [];
 
   injects.forEach(item => {
     replacements.push([new RegExp(`\\b${item}\\b`, 'g'), `this.${camelize(item)}`]);
   });
 
-  variables.forEach(item => {
-    replacements.push([new RegExp(`(?<!(function|:|this.|$this.) )\\b${item}\\b((?!\s*\((.*)\))(?!\s*\{)|(\s*\((.*)\))(?!\s*\{))`, 'g'), `this.${item}`]);
-  });
+  // declaredVariables.forEach(item => {
+    // replacements.push([new RegExp(`(?<!(var\\s+|let\\s+|const\\s+))\\b${item}\\b`, 'g'), `this.${item}$2`]);
+  // });
+
+  // declaredMethods.forEach(item => {
+    // replacements.push([new RegExp(`(?<!(function\\s+|:\\s*|this.|$this.|,\\s*|{\\s*|'\\s*))\\b${item}\\b((?!\s*\((.*)\))(?!\s*\{)|(\s*\((.*)\))(?!\s*\{))`, 'g'), `this.${item}$2`]);
+  // });
 
   for (const r of replacements) {
     results = results.replace(r[0], r[1]);

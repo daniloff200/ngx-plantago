@@ -20,12 +20,12 @@ const replacements: [RegExp, string][] = [
     [/private \$window(: (any|ng\.IWindowService))?/g, '@Inject(\'$window\') private $window: any'],
 
     // $timeout
-    [/(var|ctrl|this|self)\.\$timeout\.cancel\((.*)\)/g, 'clearTimeout($2)'],
-    [/(var|ctrl|this|self)\.\$timeout/g, 'setTimeout'],
+    [/(ctrl|this|self|)(\.|)\$timeout\.cancel\((.*)\)/g, 'clearTimeout($3)'],
+    [/(ctrl|this|self|)(\.|)\$timeout/g, 'setTimeout'],
 
     // $interval
-    [/(var|ctrl|this|self)\.\$interval\.cancel\((.*)\)/g, 'clearInterval($2)'],
-    [/(var|ctrl|this|self)\.\$interval/g, 'setInterval'],
+    [/(ctrl|this|self|)(\.|)\$interval\.cancel\((.*)\)/g, 'clearInterval($3)'],
+    [/(ctrl|this|self|)(\.|)\$interval/g, 'setInterval'],
 
     [/( *)\.finally\((.*)/g, '$1.then($2\n$1    // Native promise does not have finally. This then will execute last.'],
 
@@ -57,9 +57,11 @@ const replacements: [RegExp, string][] = [
     [/angular\.isDefined\((.*?)\)/g, '!!$1'],
 
     // rename functions
-    [/( *)(ctrl|this)\.(\w+) = function (\w+)/g, '$1$3'],
-    [/( *)(ctrl|this)\.(\w+) = function/g, '$1$3'],
-    [/function\s+(\w+)\s*\((.*)\)\s*\{/g, '$1($2) {'],
+    [/( *)(ctrl|this)\.(\w+)\s*\=\s*function\s*(\w+)/g, '$1$3'],
+    [/( *)(ctrl|this)\.(\w+)\s*\=\s*function/g, '$1$3'],
+    [/(?<!(\=\s*|\:\s*|\(\s*))function\s+(\w+)\s*\((.*)\)\s*\{/g, '$2($3) {'],
+    [/(\=|\:|\()\s*function\s+(\w+)\s*\((.*)\)\s*\{/g, '$1 ($3) => {'],
+    [/(\=|\:|\()\s*function\s*\((.*)\)\s*\{/g, '$1 ($2) => {'],
 
     // use arrow function
     // [/function\s+\((.*)\)\s*\{/g, '($1) => {'],
