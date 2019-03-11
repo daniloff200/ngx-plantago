@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 import { Uri } from 'vscode';
-
 import { getSourceFile } from '../lib/get-source-file';
 import { serviceImports } from '../lib/services/service-imports';
 import { processStringReplacements } from '../lib/process-string-replacements';
