@@ -2,8 +2,6 @@ import * as parse5 from "parse5";
 
 import { dashToCamel } from "../dash-to-camel";
 
-// const htmlAst =  require('html-parse-stringify');
-
 const htmlTagsDictionary = [
   "a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdo", "blockquote", ""
   , "body", "br", "button", "canvas", "caption", "code", "cite", "col", "colgroup", "datalist", "dd", "del", "details", "dfn",
@@ -23,14 +21,6 @@ export function replaceComponentsProps(htmlData: any) {
     return htmlData;
   }
 
-  //const htmlTree = htmlAst.parse(htmlData);
-
-  // htmlTree.forEach((treeItem: any) =>  {
-  //     return getInfo(treeItem);
-  //   });
-
-  //    return htmlAst.stringify(htmlTree);
-
   const htmlAstTree: any = parse5.parse(htmlData);
 
   htmlAstTree.childNodes.forEach((treeItem: any) => {
@@ -48,7 +38,7 @@ function getInfo(node: any) {
     return node;
   }
 
-  // addToDoForNotMigratedDirectives(node);
+  addToDoForNotMigratedDirectives(node);
 
 
   if (!(htmlTagsDictionary.indexOf((node.nodeName)) > -1)) {
@@ -115,111 +105,19 @@ function transformAttributes(node: any) {
 }
 
 function addToDoForNotMigratedDirectives(node: any) {
-  const directives = ["ng-message", "ng-messages", "ng-true-value", "ng-false-value"];
+  const directives = ["ng-message", "ng-messages", "ng-true-value", "ng-false-value", "ng-init"];
 
   directives.forEach((item, index) => {
     node.attrs.forEach((attr: any) => {
       if (item.indexOf(attr.name) > -1) {
 
-
-        const errorString = "\n ToDo fix " + item + "\n";
-
         node.childNodes.unshift(
           {
             nodeName: "#comment",
-            data: errorString,
+            data: "ToDo fix " + item,
             parentNode: node
           });
-
       }
     });
   });
 }
-
-
-/* OLD LOGIC FOR HTML-PARSE-STRINGIFY MODULE
-
-function getInfo(node: any) {
-  console.log(node);
-
-   if (!node) {
-     return node;
-   }
-
-   if (!(htmlTagsDictionary.indexOf((node.name)) > -1)) {
-
-   if (node.attrs) {
-   transformAttributes(node);
-  }
-}
-
-  if (!node.childNodes || node.childNodes.length === 0 ) {
-    return node;
-  }
-
-  node.childNodes.forEach((cbNode: any) => {
-
-     if(!(cbNode as any).name) {
-       return cbNode;
-     }
-
-     if((cbNode as any).name === '--' || (cbNode as any).name === '!--') {
-             return cbNode;
-     }
-
-     if((cbNode as any).content === '-->') {
-      return cbNode;
-    }
-
-      if (!(htmlTagsDictionary.indexOf(((cbNode as any).name)) > -1)) {
-
-        if ((cbNode as any).attrs) {
-            transformAttributes(cbNode);
-        }
-      }
-
-    if ((cbNode as any).childNodes) {
-      getInfo(cbNode);
-
-  }
-
-
-  return cbNode;
-  });
-
-  return node;
-}
-
-function transformAttributes(node: any) {
-let keys = Object.keys((node as any).attrs);
-keys.forEach((key, index) =>  {
-  const camelizedName = dashToCamel(key);
-
-  if (/(\[.*?\])/gm.test(key) 
-  || /(\(.*?\))/gm.test(key)) {
-  return;
-  }
-
-  if (((node as any).attrs[key].indexOf('$event') > -1)) {
-    const outputName =  "(" + camelizedName + ")";
-    keys[index] = outputName;
-  } else {
-    const inputName = "[" + camelizedName + "]";
-    keys[index] = inputName;
-  }
-
-}, keys);
-
-const keyValues = Object.keys((node as any).attrs).map((key: any, index: number) => {
-  const newKey = keys[index] || key;
-
-  if ((node as any).attrs[key].indexOf('') || /^[A-Z]/.test((node as any).attrs[key]) ) {
-    return { [newKey]: "'" + (node as any).attrs[key] + "'"};
-  }
- 
-  return {[newKey]: (node as any).attrs[key]};
-
-});
-
- (node as any).attrs = Object.assign({}, ...keyValues);
-} */
