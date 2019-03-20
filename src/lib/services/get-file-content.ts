@@ -6,7 +6,7 @@ let fileContentNameIdentifier: string;
 let declaredThings: { [hey: string]: any } = {};
 let fileContent: FileContent;
 
-const decorators: string[] = ['service', 'factory', 'component'];
+const decorators: string[] = ['service', 'factory', 'component', 'filter'];
 const lifecycleHooks: string[] = ['$onInit', '$onDestroy', '$onChanges'];
 
 export function getFileContent(ast: Node): FileContent {
@@ -208,6 +208,17 @@ function getBody(node: Block) {
                 //         body = body.replace(element, '');
                 //     });
                 // }
+            }
+
+
+            if (fileContent.type === 'filter') {
+                fileContent.methods.push({
+                    name: 'transform',
+                    arguments: funArguments,
+                    body: `{\n${body}\n}`
+                });
+
+                return;
             }
 
             fileContent.methods.push({

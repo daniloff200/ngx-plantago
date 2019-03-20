@@ -17,6 +17,10 @@ export function genDocumentImports(document: FileContent): any {
         case 'component':
             importsAngular.push('Component');
             break;
+        
+        case 'filter':
+            importsAngular.push('Pipe, PipeTransform');
+            break;
     }
 
     const documentInjects = document.constructor.dependencies

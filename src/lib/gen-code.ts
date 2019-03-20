@@ -89,6 +89,10 @@ function genDocumentDecorator(document: FileContent): string {
         case 'component':
             decorator = genComponentDecorator(document);
             break;
+
+        case 'filter':
+            decorator = getPipeDecorator(document);
+            break;
     }
 
     return decorator;
@@ -99,6 +103,13 @@ function genServiceDecorator(document: FileContent): string {
     export class ${pascalCase(document.declaredName as string)} {`;
 
     return serviceDecorator;
+}
+
+function getPipeDecorator(document: FileContent): string {
+    const pipeDecorator = `@Pipe({name: '${camelize(document.declaredName as string)}'})
+    export class ${pascalCase(document.declaredName as string)} implements PipeTransform {`;
+
+    return pipeDecorator;
 }
 
 function genComponentDecorator(document: FileContent): string {

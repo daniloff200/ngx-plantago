@@ -5,7 +5,7 @@ import { join } from 'path';
 
 import { processServices } from './tools/process-services';
 
-const rootAppDir = '/app';
+const rootAppDir = '/app/shared/filters';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -26,12 +26,14 @@ export function activate(context: vscode.ExtensionContext) {
 		const rootPath = join(vscode.workspace.rootPath as string, rootAppDir);
 
 		vscode.window.showInformationMessage('Start migration components');
-		await convertService({base: rootPath, pattern: '**/*component.ts'});
+		//await convertService({base: rootPath, pattern: '**/*component.ts'});
 		vscode.window.showInformationMessage('Finished migration components');
 		// vscode.window.showInformationMessage('Start migration services');
 		// await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config,resolve}.js'});
-		// vscode.window.showInformationMessage('Finished migration services');
-		// await processPipes({base: rootPath, pattern: '**/*pipe.{js,ts}'});
+    // vscode.window.showInformationMessage('Finished migration services');
+    vscode.window.showInformationMessage('Start migration pipes');
+   await convertPipes({base: rootPath, pattern: '**/*{js,ts}'});
+    vscode.window.showInformationMessage('Finished migration pipes');
 		// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
 		// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
 	});
@@ -54,11 +56,11 @@ async function convertService(globPath: {base: string; pattern: string}) {
 	await processServices(files);
 }
 
-// async function processPipes(globPath: {base: string; pattern: string}) {
-// 	const tool = require('./tools/process-services');
-// 	const files = await vscode.workspace.findFiles(globPath);
-// 	tool(files);
-// }
+async function convertPipes(globPath: {base: string; pattern: string}) {
+	const files = await vscode.workspace.findFiles(globPath);
+	await processServices(files);
+}
+
 
 // async function processTemplates(globPath: {base: string; pattern: string}, componentGlobPath: {base: string; pattern: string}) {
 // 	const tool = require('./tools/process-templates');
