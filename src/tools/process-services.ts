@@ -13,18 +13,26 @@ import { getFileContent } from '../lib/services/get-file-content';
 import { genCode } from '../lib/gen-code';
 import { FileContent } from '../lib/models/file-content';
 
-export async function processServices(files: Uri[]) {
-  await Promise.all(files.map(async (file, index) => {
+export async function processServices(file: any) {
+//await Promise.all(files.map(async (file, index) => {
     // const pieces = file.path.split('/');
     // const fileName = pieces[pieces.length - 1];
-    vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Start processing the "${path.basename(file.path)}" file`);
-    console.log(`Processing: ${path.basename(file.path)} - (${index + 1}/${files.length})`);
+    // vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Start processing the "${path.basename(file.path)}" file`);
+    //console.log(`Processing: ${path.basename(file.path)} - (${index + 1}/${files.length})`);
+
+    console.log(`Processing: ${path.basename(file.path)}`);
+
 
     // Read and parse the file's code
     let ast = getSourceFile(file);
 
     // Read and parse the file's code
-    const fileContent: FileContent = getFileContent(ast);
+    const fileContent: FileContent | undefined = getFileContent(ast);
+
+    if (!fileContent)
+    {
+      return file;
+    }
 
     // Now we are modifying the AST
     let code = genCode(fileContent);
@@ -39,8 +47,8 @@ export async function processServices(files: Uri[]) {
     const outputFilePath = getOutputFilePath(file);
     writeFile(outputFilePath, code);
 
-    vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Finished processing the "${path.basename(file.path)}" file`);
-    console.log(`Converted: ${path.basename(file.path)} - (${index + 1}/${files.length}):`);
-  }));
+    // console.log(`Converted: ${path.basename(file.path)} - (${index + 1}/${files.length}):`);
+    console.log(`Converted: ${path.basename(file.path)}`);
+ // }));
 }
 

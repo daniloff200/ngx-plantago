@@ -9,10 +9,16 @@ let fileContent: FileContent;
 const decorators: string[] = ['service', 'factory', 'component', 'filter'];
 const lifecycleHooks: string[] = ['$onInit', '$onDestroy', '$onChanges'];
 
-export function getFileContent(ast: Node): FileContent {
+export function getFileContent(ast: Node): FileContent | undefined {
     fileContentNameIdentifier = '';
     declaredThings = {};
     fileContent = initFileContent();
+      
+     getType(ast);
+
+    if (fileContent.type === 'config' || fileContent.type === '') {
+        return;
+    } 
 
     parseFileContent(ast);
 
@@ -54,6 +60,13 @@ function parseFileContent(node: Node) {
             return;
         }
 
+
+        // if (!decorators.includes((cbNode as any).name.text)) {
+        //     parseFileContent(cbNode);
+
+        //     return;
+        // }
+
         if (cbNode.kind === SyntaxKind.VariableDeclaration) {
             declaredThings[(cbNode as any).name.text] = (cbNode as any).initializer;
         }
@@ -64,6 +77,11 @@ function parseFileContent(node: Node) {
 
         if (decorators.includes((cbNode as any).name.text) && cbNode.parent.kind === SyntaxKind.CallExpression) {
             fileContent.type = (cbNode as any).name.text;
+
+          if( fileContent.type === 'config') {
+              return;
+          }
+
             getName(cbNode.parent as CallExpression);
         }
 
@@ -523,3 +541,28 @@ function initFileContent(): FileContent {
         },
     };
 }
+
+function getType(node: Node) {
+    node.forEachChild((cbNode: any) => {
+        if (fileContent.type) {
+            return;
+        }
+ 
+        if (cbNode.getChildCount() === 0) {
+            return;
+        }
+
+        if ((cbNode as any).name && (cbNode as any).name.text === 'config' ) {
+            fileContent.type = (cbNode as any).name.text;
+        }
+ 
+        if ((cbNode as any).name && (cbNode as any).name.text && decorators.includes((cbNode as any).name.text) && cbNode.parent.kind === SyntaxKind.CallExpression) {
+            fileContent.type = (cbNode as any).name.text;
+            console.log(fileContent.type)
+        }
+ 
+
+        getType(cbNode);
+    });
+
+ }

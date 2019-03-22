@@ -39,11 +39,18 @@
 		"vscode": "^1.1.28"
 	},
 	"dependencies": {
+		"@types/cheerio": "^0.22.10",
+		"@types/htmlparser2": "^3.7.31",
+		"@types/js-beautify": "^1.8.0",
 		"@types/lodash": "^4.14.121",
+		"@types/parse5": "^5.0.0",
+		"cheerio": "^1.0.0-rc.1",
 		"esprima": "4.0.1",
 		"js-to-ts-converter": "^0.16.2",
+		"js-beautify": "^1.9.0",
 		"lodash": "^4.17.11",
 		"pascal-case": "^2.0.1",
+		"parse5": "5.1.0",
 		"prettier": "^1.16.4",
 		"strip-comments": "1.0.2"
 	}
