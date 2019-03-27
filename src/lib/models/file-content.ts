@@ -1,3 +1,5 @@
+import { type } from "os";
+
 export interface Method {
     name: string;
     arguments: string[];
@@ -31,9 +33,18 @@ export interface Component {
     styleUrls: string[];
 }
 
+export interface FilesPaths {
+    name: string;
+    moduleName: string;
+    type: string;
+    path: string;
+    isInModule?: boolean;
+}
+
 export interface FileContent {
     type: string;
     moduleName: string | null;
+    isMainModule: boolean;
     declaredName: string | null;
     methods: Method[];
     variables: Variable[];

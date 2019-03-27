@@ -1,9 +1,16 @@
 import { uniq, sortBy } from 'lodash';
 import { FileContent } from '../models/file-content';
+import { getStorage, getCurrentFile} from '../../lib/file-paths-storage';
+import * as path from 'path';
 
 const needToSkip = ['$q', '$log', '$filter', '$rootScope', '$timeout', '$cacheFactory', '$state'];
 
 export function genDocumentImports(document: FileContent): any {
+    let pathsStorage = getStorage();
+
+    sortBy(pathsStorage,'moduleName');
+
+    let currentActiveFile = getCurrentFile();
     let results: string[] = [];
 
     const importsAngular = [];
@@ -51,11 +58,15 @@ export function genDocumentImports(document: FileContent): any {
                 return;
             }
 
-            results.push(`import { ${item} } from './';`);
+          pathsStorage.forEach((fileInfo) => {
+          if (fileInfo.name === item) {
+            const TSpath = path.relative(currentActiveFile.path, fileInfo.path).replace('../','').replace('.js','');
+            results.push(`import { ${item} } from '${TSpath}';`);
+            }
+          });
         });
     }
 
     results = sortBy(uniq(results));
-
-    return { imports: results.join('\n'), dependencies: documentInjects };
+    return { imports: results, dependencies: documentInjects };
 }

@@ -111,6 +111,10 @@ function parseFileContent(node: Node) {
 
 function getModuleName(node: CallExpression) {
     fileContent.moduleName = (node.arguments[0] as any).text;
+
+    if (node.arguments[1] && node.arguments[1].kind === SyntaxKind.ArrayLiteralExpression) {
+        fileContent.isMainModule = true;
+    }
 }
 
 function getName(node: CallExpression) {
@@ -526,6 +530,7 @@ function initFileContent(): FileContent {
     return {
         type: '',
         moduleName: null,
+        isMainModule: false,
         declaredName: null,
         lifecycleHooks: [],
         methods: [],
@@ -558,7 +563,6 @@ function getType(node: Node) {
  
         if ((cbNode as any).name && (cbNode as any).name.text && decorators.includes((cbNode as any).name.text) && cbNode.parent.kind === SyntaxKind.CallExpression) {
             fileContent.type = (cbNode as any).name.text;
-            console.log(fileContent.type)
         }
  
 

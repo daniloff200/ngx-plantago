@@ -3,6 +3,7 @@ import pascalCase from 'pascal-case';
 import { FileContent, Constructor, Variable, Method } from "./models/file-content";
 import { camelize } from "./camelize";
 import { genDocumentImports } from './services/gen-document-imports';
+import { saveFileToStorage } from '../lib/file-paths-storage';
 
 export function genCode(document: FileContent): string {
 
@@ -17,9 +18,26 @@ export function genCode(document: FileContent): string {
     // get document decorator
     const decorator = genDocumentDecorator(document);
 
-    return `${imports}${'\n'}
+    const variables = genVariables(document.variables);
+    
+    const angularImports = [];
+    if (variables.indexOf('@Output') > -1) {
+        angularImports.push('Output');
+    }
+
+    if (variables.indexOf('@Input') > -1) {
+        angularImports.push('Input');
+    }
+
+    if (variables.indexOf('EventEmitter') > -1) {
+        angularImports.push('EventEmitter');
+    }
+
+    imports.push(`import { ${angularImports.join(', ')} } from '@angular/core';`);
+
+    return `${imports.join('\n')}${'\n'}
       ${decorator}
-      ${genVariables(document.variables)}${'\n'}
+      ${variables}${'\n'}
       ${genConstructor(document.constructor, regexSync)}${'\n'}
       ${genMethods(document.methods, regexSync)}
     }`;
@@ -102,12 +120,16 @@ function genServiceDecorator(document: FileContent): string {
     const serviceDecorator = `@Injectable()
     export class ${pascalCase(document.declaredName as string)} {`;
 
+    saveFileToStorage(pascalCase(document.declaredName as string), document.type, document.moduleName);
+
     return serviceDecorator;
 }
 
 function getPipeDecorator(document: FileContent): string {
     const pipeDecorator = `@Pipe({name: '${camelize(document.declaredName as string)}'})
     export class ${pascalCase(document.declaredName as string)} implements PipeTransform {`;
+
+    saveFileToStorage(pascalCase(document.declaredName as string), document.type, document.moduleName);
 
     return pipeDecorator;
 }
@@ -124,6 +146,8 @@ function genComponentDecorator(document: FileContent): string {
     if (document.lifecycleHooks && document.lifecycleHooks.length) {
         componentDecorator += ` implements ${document.lifecycleHooks.join(', ')}`;
     }
+
+    saveFileToStorage(pascalCase(document.declaredName as string), document.type, document.moduleName);
 
     return componentDecorator + ' {';
 }
