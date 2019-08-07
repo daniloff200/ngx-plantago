@@ -2,74 +2,282 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { join } from 'path';
+import * as path from 'path';
+import pascalCase from 'pascal-case';
+import { uniq, sortBy } from 'lodash';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
 
 import { processServices } from './tools/process-services';
+import { processPaths } from './tools/process-paths';
+import { processTemplates } from './tools/process-templates';
+import { getStorage } from './lib/file-paths-storage';
+import { printString } from './lib/pretty-print';
+import { FilesPaths } from './lib/models/file-content';
 
-const rootAppDir = '/app';
+
+const rootAppDir = 'app/modules/account/admin/';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "apollon" is now active!');
+    // Use the console to output diagnostic information (console.log) and errors (console.error)
+    // This line of code will only be executed once when your extension is activated
+    console.log('Congratulations, your extension "apollon" is now active!');
 
-	// The command has been defined in the package.json file1
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.apollon', async() => {
-		// The code you place here will be executed every time your command is executed
+    // The command has been defined in the package.json file1
+    // Now provide the implementation of the command with registerCommand
+    // The commandId parameter must match the command field in package.json
+    let disposable = vscode.commands.registerCommand('extension.apollon', async () => {
+        // The code you place here will be executed every time your command is executed
 
-		// Display a message box to the user
+        // Display a message box to the user
 
-		const rootPath = join(vscode.workspace.rootPath as string, rootAppDir);
+        const rootPath = join(vscode.workspace.rootPath as string, rootAppDir);
 
-		vscode.window.showInformationMessage('Start renaming files from js to ts');
+        try {
+            const promise1 = templates(rootPath);
 
-		// await processComponents({base: rootPath, pattern: '**/*component.{js,ts}'});
-		// resolve
-		await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config}.js'});
-		// await processPipes({base: rootPath, pattern: '**/*pipe.{js,ts}'});
-		// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
-		// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
-	});
+            if (promise1) {
+                promise1.then((value: any) => {
+                    buildPathsStorage(rootPath);
+                });
+            }
 
-	context.subscriptions.push(disposable);
+        } catch (e) {
+            console.log(e);
+        }
+
+        //	const finalResult = [await first(rootPath), await second(rootPath), third(rootPath)];
+
+        // 	// vscode.window.showInformationMessage('Start migration services');
+        // 	await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config,resolve}.js'});
+        //       // vscode.window.showInformationMessage('Finished migration services');
+        //   vscode.window.showInformationMessage('Start migration js files');
+        //  await convertService({base: rootPath, pattern: '**/*.js'});
+        //   vscode.window.showInformationMessage('Finished migration js files');
+        // 	// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
+        // 	// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
+    });
+
+    context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
-
-// async function processComponents(globPath: {base: string; pattern: string}) {
-// 	const tool = require('./tools/process-components');
-// 	const files = await vscode.workspace.findFiles(globPath);
-//
-// 	tool(files);
-// }
-
-async function convertService(globPath: {base: string; pattern: string}) {
-	const files = await vscode.workspace.findFiles(globPath);
-	processServices(files);
+export function deactivate() {
 }
 
-// async function processPipes(globPath: {base: string; pattern: string}) {
-// 	const tool = require('./tools/process-services');
-// 	const files = await vscode.workspace.findFiles(globPath);
-// 	tool(files);
-// }
+async function secondStep(rootPath: string) {
+    // components
+    return new Promise(async (resolve, reject) => {
+        vscode.window.showInformationMessage('Start migration components');
 
-// async function processTemplates(globPath: {base: string; pattern: string}, componentGlobPath: {base: string; pattern: string}) {
-// 	const tool = require('./tools/process-templates');
-// 	const files = await vscode.workspace.findFiles(globPath);
-// 	const componentFiles = await vscode.workspace.findFiles(componentGlobPath);
-// 	tool(files, componentFiles);
-// }
-//
+        try {
+            await convertService({base: rootPath, pattern: '**/*.component.js'});
+        } catch (e) {
+            reject(new Error('whoops'));
+            return;
+
+        }
+        vscode.window.showInformationMessage('Finished migration components');
+
+        // thirdStep(rootPath);
+        workWithModules();
+
+        resolve(true);
+    });
+}
+
+async function buildPathsStorage(rootPath: string): Promise<boolean> {
+    // saving paths to all js files in storage
+    return new Promise(async (resolve, reject) => {
+        vscode.window.showInformationMessage('Start saving paths');
+
+        try {
+            await workWithPaths({base: rootPath, pattern: '**/*.js'});
+        } catch (e) {
+            reject(new Error('whoops'));
+            return;
+
+        }
+
+        vscode.window.showInformationMessage('Finished saving paths');
+        firstStep(rootPath);
+
+        resolve(true);
+    });
+}
+
+
+async function firstStep(rootPath: string): Promise<boolean> {
+    // services
+    return new Promise(async (resolve, reject) => {
+        vscode.window.showInformationMessage('Start migration services');
+
+        try {
+            await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config,resolve}.js'});
+        } catch (e) {
+            reject(new Error('whoops'));
+            return;
+
+        }
+
+        vscode.window.showInformationMessage('Finished migration services');
+        secondStep(rootPath);
+
+        resolve(true);
+    });
+}
+
+async function thirdStep(rootPath: string) {
+    // others js (configs, filters, etc).
+    let res;
+    vscode.window.showInformationMessage('Start migration js files');
+
+
+    try {
+        res = await convertService({base: rootPath, pattern: '**/*.js'});
+    } catch (e) {
+        console.log(e, 'error happened');
+    }
+
+    if (res) {
+        vscode.window.showInformationMessage('Finished migration js files');
+
+        console.log('finish');
+    }
+}
+
+async function templates(rootPath: string) {
+    let res;
+    vscode.window.showInformationMessage('Start work with templates');
+
+    try {
+        res = await convertTemplates({base: rootPath, pattern: '**/*.html'}, {
+            base: rootPath,
+            pattern: '**/*.component.js'
+        });
+    } catch (e) {
+        console.log(e, 'error happened');
+    }
+
+    if (res) {
+        vscode.window.showInformationMessage('Finish work with templates');
+    }
+}
+
+async function convertService(globPath: { base: string; pattern: string }) {
+    const files = await vscode.workspace.findFiles(globPath);
+
+    files.forEach((file, index) => {
+        vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Start processing the "${path.basename(file.path)}" file`);
+        console.log(`Processing: ${path.basename(file.path)} - (${index + 1}/${files.length})`);
+        const res = processServices(file);
+        vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Finished processing the "${path.basename(file.path)}" file`);
+        return res;
+    });
+
+    return true;
+}
+
+async function workWithPaths(globPath: { base: string; pattern: string }) {
+    const files = await vscode.workspace.findFiles(globPath);
+
+    files.forEach((file, index) => {
+        vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Getting path of the "${path.basename(file.path)}" file`);
+        const res = processPaths(file);
+        vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Saved path of the "${path.basename(file.path)}" file`);
+        return res;
+    });
+
+    return true;
+}
+
+function workWithModules(dataArray?: any) {
+    // creating modules here
+
+	let currentModule = '';
+    const rootPath = join(vscode.workspace.rootPath as string, rootAppDir);
+	let filesWithModulesData: FilesPaths[];
+    if (!existsSync(rootPath + '/modules')) {
+        mkdirSync(rootPath + '/modules');
+    }
+
+	if (dataArray) {
+		filesWithModulesData = dataArray;
+	} else {
+		filesWithModulesData = getStorage();
+	}
+
+	let paths: string[] = [`import { NgModule } from \'@angular/core\';`, `import { CommonModule } from \'@angular/common\';`];
+	let imports: string[] = ['CommonModule'];
+	let providers: any[] = [];
+    let declarations: any[] = [];
+    let exports = '';
+
+	filesWithModulesData.forEach((item:any) => {
+		if (currentModule === '') {
+         currentModule = item.moduleName;
+		}
+
+         if (currentModule === item.moduleName) {
+			 item.isInModule = true;
+			 switch (item.type) {
+                case 'component':
+                case 'filter':
+				declarations.push(item.name);
+				break;
+				case 'service':
+				case 'factory':
+				providers.push(item.name);
+				break;
+			 }
+             
+             const filePath = path.relative(rootPath + '/modules/' + currentModule + '.module.ts', item.path).replace('../','').replace('.js','');
+             paths.push(`import { ${item.name} } from '${filePath}';`);
+		 }
+
+		 return item;
+	});
+
+    providers = sortBy(uniq(providers));
+    declarations = sortBy(uniq(declarations));
+    imports = sortBy(uniq(imports));
+    paths = sortBy(uniq(paths));
+
+	const code =`${paths.join('\n')}
+	${'@NgModule({'}${'\n'}
+	${`imports: [${imports}],`}${'\n'}
+	${`providers: [${providers}],`}${'\n'}
+	${`declarations: [${declarations}],`}${'\n'}
+	${`exports: [${exports}],`}${'\n'}
+	${`entryComponents: [${declarations}],`}${'\n'}
+	${`})`}
+	${`export class  ${pascalCase(currentModule.replace(/\./g,' '))} {}`}`;
+
+    printString(code);
+    
+    console.log(`MODULE ${rootPath + '/modules/' + currentModule + '.module.ts'} has been created`);
+    vscode.window.showInformationMessage(`Module: ${currentModule + '.module.ts'} has been created`);
+
+	writeFileSync(rootPath + '/modules/' + currentModule + '.module.ts' , code);
+
+	filesWithModulesData = filesWithModulesData.filter(x => !x.isInModule);
+
+    if (filesWithModulesData.length > 0) {
+		workWithModules(filesWithModulesData);
+	} 	
+}
+
+async function convertTemplates(globPath: { base: string; pattern: string }, componentGlobPath: { base: string; pattern: string }) {
+    const files = await vscode.workspace.findFiles(globPath);
+    const componentFiles = await vscode.workspace.findFiles(componentGlobPath);
+    await processTemplates(files, componentFiles);
+    return true;
+}
+
 // async function processFiles(globPath: {base: string; pattern: string}) {
 // 	const tool = require('./tools/process-files');
 // 	const files = await vscode.workspace.findFiles(globPath);
 // 	tool(files);
 // }
-//
-//
