@@ -31,6 +31,7 @@ export async function processServices(file: any) {
 
     if (!fileContent)
     {
+      vscode.window.showErrorMessage('File has errors, and was not migrated'); 
       return file;
     }
 
