@@ -15,52 +15,58 @@ import { printString } from './lib/pretty-print';
 import { FilesPaths } from './lib/models/file-content';
 
 
-const rootAppDir = 'app/modules/account/admin/';
+const options: vscode.OpenDialogOptions = {
+    canSelectFolders: true,
+    canSelectFiles: false,
+    openLabel: 'Add',
+};
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+let rootAppDir = '';
+
 export async function activate(context: vscode.ExtensionContext) {
 
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "apollon" is now active!');
+    vscode.window.showInformationMessage('Hello ! :) ngx-plantago is active');
 
-    // The command has been defined in the package.json file1
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('extension.apollon', async () => {
-        // The code you place here will be executed every time your command is executed
+        let disposable = vscode.commands.registerCommand('extension.apollon', async () => {
 
-        // Display a message box to the user
+            vscode.window.showOpenDialog(options).then(folders => {
+                console.log(folders)
+                if (folders) {
+                    rootAppDir = folders[0].path
+                }
+        
+                console.log(rootAppDir)
+        
+            if (rootAppDir.length > 0) {
+                const rootPath = rootAppDir + '/';
 
-        const rootPath = join(vscode.workspace.rootPath as string, rootAppDir);
-
-        try {
-            const promise1 = templates(rootPath);
-
-            if (promise1) {
-                promise1.then((value: any) => {
-                    buildPathsStorage(rootPath);
-                });
+            try {
+                const promise1 = templates(rootPath);
+    
+                if (promise1) {
+                    promise1.then((value: any) => {
+                        buildPathsStorage(rootPath);
+                    });
+                }
+    
+            } catch (e) {
+                console.log(e);
             }
-
-        } catch (e) {
-            console.log(e);
         }
-
-        //	const finalResult = [await first(rootPath), await second(rootPath), third(rootPath)];
-
-        // 	// vscode.window.showInformationMessage('Start migration services');
-        // 	await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config,resolve}.js'});
-        //       // vscode.window.showInformationMessage('Finished migration services');
-        //   vscode.window.showInformationMessage('Start migration js files');
-        //  await convertService({base: rootPath, pattern: '**/*.js'});
-        //   vscode.window.showInformationMessage('Finished migration js files');
-        // 	// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
-        // 	// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
+    
+            //	const finalResult = [await first(rootPath), await second(rootPath), third(rootPath)];
+    
+            // 	// vscode.window.showInformationMessage('Start migration services');
+            // 	await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config,resolve}.js'});
+            //       // vscode.window.showInformationMessage('Finished migration services');
+            //   vscode.window.showInformationMessage('Start migration js files');
+            //  await convertService({base: rootPath, pattern: '**/*.js'});
+            //   vscode.window.showInformationMessage('Finished migration js files');
+            // 	// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
+            // 	// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
+        });
+        context.subscriptions.push(disposable);
     });
-
-    context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated
@@ -281,3 +287,4 @@ async function convertTemplates(globPath: { base: string; pattern: string }, com
 // 	const files = await vscode.workspace.findFiles(globPath);
 // 	tool(files);
 // }
+
