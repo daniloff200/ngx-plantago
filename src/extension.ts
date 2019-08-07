@@ -27,29 +27,28 @@ export async function activate(context: vscode.ExtensionContext) {
 
     vscode.window.showInformationMessage('Hello ! :) ngx-plantago is active');
 
-        let disposable = vscode.commands.registerCommand('extension.apollon', async () => {
+        let disposable = vscode.commands.registerCommand('extension.ngx-plantago', async () => {
 
             vscode.window.showOpenDialog(options).then(folders => {
-                console.log(folders)
                 if (folders) {
                     rootAppDir = folders[0].path
                 }
-        
-                console.log(rootAppDir)
-        
+            
             if (rootAppDir.length > 0) {
                 const rootPath = rootAppDir + '/';
 
             try {
-                const promise1 = templates(rootPath);
+                const templatesPromise = templates(rootPath);
     
-                if (promise1) {
-                    promise1.then((value: any) => {
+                if (templatesPromise) {
+                    templatesPromise.then((value: any) => {
                         buildPathsStorage(rootPath);
                     });
                 }
     
             } catch (e) {
+                vscode.window.showErrorMessage(e);
+                vscode.window.showErrorMessage('Path error'); 
                 console.log(e);
             }
         }
@@ -88,6 +87,8 @@ async function secondStep(rootPath: string) {
         vscode.window.showInformationMessage('Finished migration components');
 
         // thirdStep(rootPath);
+        // commented for now, proceed with modules
+
         workWithModules();
 
         resolve(true);
@@ -135,23 +136,25 @@ async function firstStep(rootPath: string): Promise<boolean> {
     });
 }
 
-async function thirdStep(rootPath: string) {
+async function thirdStep(rootPath: string): Promise<boolean> {
     // others js (configs, filters, etc).
-    let res;
+
+return new Promise(async (resolve, reject) => {
     vscode.window.showInformationMessage('Start migration js files');
 
-
     try {
-        res = await convertService({base: rootPath, pattern: '**/*.js'});
+        await convertService({base: rootPath, pattern: '**/*.js'});
     } catch (e) {
-        console.log(e, 'error happened');
+        reject(new Error('whoops'));
+        return;
     }
 
-    if (res) {
-        vscode.window.showInformationMessage('Finished migration js files');
+    vscode.window.showInformationMessage('Finished migration js files');
 
-        console.log('finish');
-    }
+    workWithModules();
+
+    resolve(true);
+  });
 }
 
 async function templates(rootPath: string) {
@@ -164,6 +167,7 @@ async function templates(rootPath: string) {
             pattern: '**/*.component.js'
         });
     } catch (e) {
+        vscode.window.showErrorMessage('Error during templates migration');
         console.log(e, 'error happened');
     }
 
