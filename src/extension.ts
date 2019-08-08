@@ -1,5 +1,3 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { join } from 'path';
 import * as path from 'path';
@@ -7,7 +5,7 @@ import pascalCase from 'pascal-case';
 import { uniq, sortBy } from 'lodash';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 
-import { processServices } from './tools/process-services';
+import { processServicesAndComponents } from './tools/process-code';
 import { processPaths } from './tools/process-paths';
 import { processTemplates } from './tools/process-templates';
 import { getStorage } from './lib/file-paths-storage';
@@ -31,7 +29,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             vscode.window.showOpenDialog(options).then(folders => {
                 if (folders) {
-                    rootAppDir = folders[0].path
+                    rootAppDir = folders[0].path;
                 }
             
             if (rootAppDir.length > 0) {
@@ -41,7 +39,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 const templatesPromise = templates(rootPath);
     
                 if (templatesPromise) {
-                    templatesPromise.then((value: any) => {
+                    templatesPromise.then(() => {
                         buildPathsStorage(rootPath);
                     });
                 }
@@ -52,17 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 console.log(e);
             }
         }
-    
-            //	const finalResult = [await first(rootPath), await second(rootPath), third(rootPath)];
-    
-            // 	// vscode.window.showInformationMessage('Start migration services');
-            // 	await convertService({base: rootPath, pattern: '**/*.{service,config,grid-config,resolve}.js'});
-            //       // vscode.window.showInformationMessage('Finished migration services');
-            //   vscode.window.showInformationMessage('Start migration js files');
-            //  await convertService({base: rootPath, pattern: '**/*.js'});
-            //   vscode.window.showInformationMessage('Finished migration js files');
-            // 	// await processTemplates({base: rootPath, pattern: '**/*.{template,tpl}.html'}, {base: rootPath, pattern: '**/*component.{js,ts}'});
-            // 	// await processFiles({base: rootPath, pattern: '**/*component.{js,ts}'});
+
         });
         context.subscriptions.push(disposable);
     });
@@ -137,7 +125,7 @@ async function firstStep(rootPath: string): Promise<boolean> {
 }
 
 async function thirdStep(rootPath: string): Promise<boolean> {
-    // others js (configs, filters, etc).
+    // other js (configs, filters, etc).
 
 return new Promise(async (resolve, reject) => {
     vscode.window.showInformationMessage('Start migration js files');
@@ -180,10 +168,10 @@ async function convertService(globPath: { base: string; pattern: string }) {
     const files = await vscode.workspace.findFiles(globPath);
 
     files.forEach((file, index) => {
-        vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Start processing the "${path.basename(file.path)}" file`);
+        const fileNumber = `${index + 1}/${files.length}`;
+        vscode.window.showInformationMessage(`(${fileNumber}): Start processing the "${path.basename(file.path)}" file`);
         console.log(`Processing: ${path.basename(file.path)} - (${index + 1}/${files.length})`);
-        const res = processServices(file);
-        vscode.window.showInformationMessage(`(${index + 1}/${files.length}): Finished processing the "${path.basename(file.path)}" file`);
+        const res = processServicesAndComponents(file, fileNumber);
         return res;
     });
 
