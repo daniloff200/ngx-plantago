@@ -15,7 +15,6 @@ export function getFileContent(ast: Node): FileContent | undefined {
     fileContent = initFileContent();
       
      getType(ast);
-
     if (fileContent.type === 'config' || fileContent.type === '') {
         return;
     } 
@@ -107,6 +106,7 @@ function parseFileContent(node: Node) {
 
         parseFileContent(cbNode);
     });
+
 }
 
 function getModuleName(node: CallExpression) {
