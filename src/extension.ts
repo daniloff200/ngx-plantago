@@ -21,6 +21,8 @@ const options: vscode.OpenDialogOptions = {
 
 let rootAppDir = '';
 
+console.log('here')
+
 export async function activate(context: vscode.ExtensionContext) {
 
     vscode.window.showInformationMessage('Hello ! :) ngx-plantago is active');
