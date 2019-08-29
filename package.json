@@ -1,6 +1,7 @@
 {
 	"name": "ngx-plantago",
 	"displayName": "ngx-plantago",
+	"icon": "images/icon.png",
 	"description": "Extension for migration your Angular.js code to Angular 7",
 	"version": "0.0.1",
 	"repository": "https://github.com/daniloff200/ngx-plantago",
