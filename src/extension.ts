@@ -16,12 +16,10 @@ import { FilesPaths } from './lib/models/file-content';
 const options: vscode.OpenDialogOptions = {
     canSelectFolders: true,
     canSelectFiles: false,
-    openLabel: 'Add',
+    openLabel: 'Start',
 };
 
 let rootAppDir = '';
-
-console.log('here')
 
 export async function activate(context: vscode.ExtensionContext) {
 
