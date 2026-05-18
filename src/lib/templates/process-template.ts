@@ -99,7 +99,8 @@ export function processTemplate(template: any, componentDict: any) {
 
 
   result = result.replace(/'true'/g, "true");
-  result = result.replace(/'false/g, "false");
+  // Replace string-wrapped 'false' with boolean false
+  result = result.replace(/'false'/g, "false");
 
   // Replace one time bindings
   result = result.replace(/"::/g, "\"");

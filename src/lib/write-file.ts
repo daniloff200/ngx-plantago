@@ -3,7 +3,8 @@ import { makeDirectoriesInPath } from './make-directories-in-path';
 
 export function writeFile(path: string, text: string): void {
     const pos = path.lastIndexOf(".");
-    const saveTo = path.substr(0, pos < 0 ? path.length : pos) + ".ts";
+    // Replace file extension with .ts (substring replaces deprecated substr)
+    const saveTo = path.substring(0, pos < 0 ? path.length : pos) + ".ts";
 
     makeDirectoriesInPath(path);
     renameSync(path, saveTo);

@@ -1,0 +1,31 @@
+<!-- Example: AngularJS template with common directives.
+     Tests: ng-if, ng-repeat, ng-click, ng-model, ng-show, ng-class, ng-bind. -->
+<div class="dashboard">
+    <h1 ng-bind="$ctrl.title"></h1>
+
+    <div ng-show="$ctrl.isLoading">Loading...</div>
+
+    <div ng-if="!$ctrl.isLoading">
+        <div ng-class="{'active': $ctrl.isActive, 'disabled': !$ctrl.isActive}">
+            <span>Welcome, {{::$ctrl.userData.name}}</span>
+        </div>
+
+        <input type="text" ng-model="$ctrl.searchQuery" placeholder="Search...">
+
+        <ul>
+            <li ng-repeat="item in $ctrl.items track by item.id"
+                ng-click="$ctrl.selectItem(item)"
+                ng-class="{'selected': item.id === $ctrl.selectedId}">
+                {{item.name}} - {{item.description}}
+            </li>
+        </ul>
+
+        <div ng-if="$ctrl.items.length === 0">
+            <p>No items found.</p>
+        </div>
+
+        <button ng-click="$ctrl.handleLogout()" ng-disabled="$ctrl.isLoading">
+            Logout
+        </button>
+    </div>
+</div>

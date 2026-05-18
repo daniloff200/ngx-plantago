@@ -120,8 +120,16 @@ function getModuleName(node: CallExpression) {
 function getName(node: CallExpression) {
     fileContent.declaredName = (node.arguments[0] as any).text;
 
-    if (node.arguments[1].kind !== SyntaxKind.Identifier) {
+    // Only call getInjects when the second argument is an array literal
+    // (e.g. .service('name', ['$http', function() {}])).
+    // Previously this used !== Identifier which broke for ObjectLiteralExpression.
+    if (node.arguments[1].kind === SyntaxKind.ArrayLiteralExpression) {
         getInjects((node.arguments[1] as any).elements);
+    }
+
+    // Handle inline object literal (e.g. .component('name', { controller: ..., bindings: ... }))
+    if (node.arguments[1].kind === SyntaxKind.ObjectLiteralExpression) {
+        processComponentConfig(node.arguments[1] as any);
     }
 
     if (node.arguments[1].kind === SyntaxKind.Identifier) {
@@ -141,41 +149,49 @@ function getName(node: CallExpression) {
 
 
         if (body.kind === SyntaxKind.ObjectLiteralExpression) {
-            body.properties.forEach((item: any) => {
-                switch (item.name.text) {
-                    case 'controller':
-                        fileContentNameIdentifier = item.initializer.text;
-                        break;
-
-                    case 'templateUrl':
-                        fileContent.component.templateUrl = item.initializer.text;
-                        break;
-
-                    case 'bindings':
-                        item.initializer.properties.forEach((property: any) => {
-                            const variable: Variable = {
-                                isPrivate: false,
-                                name: property.name.text,
-                                type: 'any',
-                                value: null,
-                                isInput: true
-                            };
-
-                            if (property.initializer.text === '&') {
-                                variable.type = 'EventEmitter<any>';
-                                variable.value = 'new EventEmitter<any>()';
-                                variable.isOutput = true;
-                                variable.isInput = false;
-                            }
-
-                            fileContent.variables.push(variable);
-                        });
-
-                        break;
-                }
-            });
+            processComponentConfig(body);
         }
     }
+}
+
+/**
+ * Processes an inline component config object literal
+ * (e.g. { controller: MyCtrl, templateUrl: '...', bindings: { ... } }).
+ */
+function processComponentConfig(body: any) {
+    body.properties.forEach((item: any) => {
+        switch (item.name.text) {
+            case 'controller':
+                fileContentNameIdentifier = item.initializer.text;
+                break;
+
+            case 'templateUrl':
+                fileContent.component.templateUrl = item.initializer.text;
+                break;
+
+            case 'bindings':
+                item.initializer.properties.forEach((property: any) => {
+                    const variable: Variable = {
+                        isPrivate: false,
+                        name: property.name.text,
+                        type: 'any',
+                        value: null,
+                        isInput: true
+                    };
+
+                    if (property.initializer.text === '&') {
+                        variable.type = 'EventEmitter<any>';
+                        variable.value = 'new EventEmitter<any>()';
+                        variable.isOutput = true;
+                        variable.isInput = false;
+                    }
+
+                    fileContent.variables.push(variable);
+                });
+
+                break;
+        }
+    });
 }
 
 function getInjects(items: any[]) {

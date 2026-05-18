@@ -1,0 +1,41 @@
+<div class="user-list">
+    <form (ngSubmit)="search()">
+        <input type="text"
+               [(ngModel)]="query"
+               name="searchInput"
+               #searchinput="ngModel">
+        <button type="submit">Search</button>
+    </form>
+
+    <div *ngFor="let user of users;trackBy:user?.id">
+        <img [src]="{{user.avatarUrl}}"
+             alt="{{user.name}}">
+        <a [href]="'/users/' + user.id">{{user.name}}</a>
+
+        <div [ngSwitch]="user.role">
+            <span *ngSwitchCase="admin"
+                  [ngStyle]="{'color': 'red'}">Admin</span>
+            <span *ngSwitchCase="editor">Editor</span>
+            <span *ngSwitchDefault>User</span>
+        </div>
+
+        <span [hidden]="user.isActive">Inactive</span>
+        <span [hidden]="!user.isActive">Active</span>
+
+        <button (click)="selectUser(user)"
+                [disabled]="!user.isActive">
+            Select
+        </button>
+
+        <select [(ngModel)]="user.role"
+                (change)="updateRole(user)"
+                name="roleSelect"
+                #roleselect="ngModel">
+            <option [value]="'admin'">Admin</option>
+            <option [value]="'editor'">Editor</option>
+            <option [value]="'user'">User</option>
+        </select>
+    </div>
+
+    <div [innerHtml]="footerHtml"></div>
+</div>

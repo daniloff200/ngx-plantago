@@ -1,0 +1,35 @@
+<!-- Example: Template with ng-switch, ng-href, ng-src, ng-style, ng-submit.
+     Tests: structural directives, attribute bindings, event bindings. -->
+<div class="user-list">
+    <form ng-submit="$ctrl.search()">
+        <input type="text" ng-model="$ctrl.query" name="searchInput">
+        <button type="submit">Search</button>
+    </form>
+
+    <div ng-repeat="user in $ctrl.users track by user.id">
+        <img ng-src="{{user.avatarUrl}}" alt="{{user.name}}">
+        <a ng-href="{{'/users/' + user.id}}">{{user.name}}</a>
+
+        <div ng-switch="user.role">
+            <span ng-switch-when="admin" ng-style="{'color': 'red'}">Admin</span>
+            <span ng-switch-when="editor">Editor</span>
+            <span ng-switch-default>User</span>
+        </div>
+
+        <span ng-hide="user.isActive">Inactive</span>
+        <span ng-show="user.isActive">Active</span>
+
+        <button ng-click="$ctrl.selectUser(user)"
+                ng-disabled="!user.isActive">
+            Select
+        </button>
+
+        <select ng-model="user.role" ng-change="$ctrl.updateRole(user)" name="roleSelect">
+            <option ng-value="'admin'">Admin</option>
+            <option ng-value="'editor'">Editor</option>
+            <option ng-value="'user'">User</option>
+        </select>
+    </div>
+
+    <div ng-bind-html="$ctrl.footerHtml"></div>
+</div>

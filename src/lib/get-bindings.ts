@@ -54,11 +54,13 @@ export function getBindings(ast: SourceFile) {
         // noCompile: '<'
         // name: '='
 
-        const match = regexp.exec(text);
+        // Use `let` so the loop can advance the regex cursor via repeated exec() calls.
+        // Previously this was `const`, causing an infinite loop when a match was found.
+        let match = regexp.exec(text);
 
         while (match !== null) {
             const binding = match[1].split(':');
-            const result = { name: binding[0], optional: false, type: '' };
+            const result = { name: binding[0].trim(), optional: false, type: '' };
 
             if (/=/.test(binding[1])) {
                 // Only bindings containing "=" should become two way bindings
@@ -78,6 +80,9 @@ export function getBindings(ast: SourceFile) {
             }
 
             results.push(result);
+
+            // Advance the regex to the next match (prevents infinite loop)
+            match = regexp.exec(text);
         }
         return results;
     }

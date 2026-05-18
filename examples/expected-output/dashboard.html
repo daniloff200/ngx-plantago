@@ -1,0 +1,32 @@
+<div class="dashboard">
+    <h1>{{title}}</h1>
+
+    <div [hidden]="!isLoading">Loading...</div>
+
+    <div *ngIf="!isLoading">
+        <div [ngClass]="{'active': isActive, 'disabled': !isActive}">
+            <span>Welcome, {{userData.name}}</span>
+        </div>
+
+        <input type="text"
+               [(ngModel)]="searchQuery"
+               placeholder="Search...">
+
+        <ul>
+            <li *ngFor="let item of items;trackBy:item?.id"
+                (click)="selectItem(item)"
+                [ngClass]="{'selected': item.id ===  selectedId}">
+                {{item.name}} - {{item.description}}
+            </li>
+        </ul>
+
+        <div *ngIf="items.length ===  0">
+            <p>No items found.</p>
+        </div>
+
+        <button (click)="handleLogout()"
+                [disabled]="isLoading">
+            Logout
+        </button>
+    </div>
+</div>

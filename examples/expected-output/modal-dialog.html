@@ -1,0 +1,31 @@
+<div class="modal-overlay"
+     *ngIf="isOpen">
+    <div class="modal-content"
+         (mouseenter)="onHover()"
+         (mouseleave)="onLeave()">
+
+        <h2>{{title}}</h2>
+
+        <div class="modal-body">
+            <ng-container *ngIf="items">
+                <div *ngFor="let item of items">
+                    <span>{{item.label}}</span>
+                    <input [(ngModel)]="item.value"
+                           (blur)="onBlur(item)"
+                           (focus)="onFocus(item)"
+                           (keydown)="onKeyDown($event, item)"
+                           (keypress)="onKeyPress($event)"
+                           name="itemInput"
+                           #iteminput="ngModel">
+                </div>
+            </ng-container>
+        </div>
+
+        <div class="modal-footer">
+            <button (click)="close()"
+                    [ngClass]="{'btn-primary': !animating}">
+                Close
+            </button>
+        </div>
+    </div>
+</div>

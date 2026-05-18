@@ -1,5 +1,3 @@
-import { type } from "os";
-
 export interface Method {
     name: string;
     arguments: string[];

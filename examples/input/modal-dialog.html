@@ -1,0 +1,29 @@
+<!-- Example: Template with ng-if combined with ng-repeat (structural directive conflict).
+     Tests: ng-container wrapping, ng-blur, ng-focus, ng-mouseenter. -->
+<div class="modal-overlay" ng-if="$ctrl.isOpen">
+    <div class="modal-content"
+         ng-mouseenter="$ctrl.onHover()"
+         ng-mouseleave="$ctrl.onLeave()">
+
+        <h2 ng-bind="$ctrl.title"></h2>
+
+        <div class="modal-body">
+            <div ng-if="$ctrl.items" ng-repeat="item in $ctrl.items">
+                <span>{{item.label}}</span>
+                <input ng-model="item.value"
+                       ng-blur="$ctrl.onBlur(item)"
+                       ng-focus="$ctrl.onFocus(item)"
+                       ng-keydown="$ctrl.onKeyDown($event, item)"
+                       ng-keypress="$ctrl.onKeyPress($event)"
+                       name="itemInput">
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button ng-click="$ctrl.close()"
+                    ng-class="{'btn-primary': !$ctrl.animating}">
+                Close
+            </button>
+        </div>
+    </div>
+</div>

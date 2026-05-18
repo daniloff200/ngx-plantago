@@ -9,24 +9,16 @@ export function printAst(ast: SourceFile) {
 }
 
 export function printString(code: string): string {
-    // Now we run the code through prettier
-
-   try {
-    prettier.format(code, {
-        parser: 'typescript',
-        printWidth: 140,
-        tabWidth: 4,
-        singleQuote: true
-    });
-}
-catch (e) {
-    return code;
-}
-
-    return prettier.format(code, {
-        parser: 'typescript',
-        printWidth: 140,
-        tabWidth: 4,
-        singleQuote: true
-    });
+    // Run the code through prettier for consistent formatting.
+    // If prettier fails (e.g. syntax error), return the original code unchanged.
+    try {
+        return prettier.format(code, {
+            parser: 'typescript',
+            printWidth: 140,
+            tabWidth: 4,
+            singleQuote: true
+        });
+    } catch (e) {
+        return code;
+    }
 }

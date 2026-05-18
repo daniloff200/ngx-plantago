@@ -98,13 +98,20 @@ function transformAttributes(node: any) {
       attr.name = inputName;
     }
 
-    if (attr.value.indexOf("") || /^[A-Z]/.test(attr.value)) {
+    // Wrap the value in quotes if it's non-empty or starts with uppercase.
+    // Previously `attr.value.indexOf("")` always returned 0 (falsy), making the check useless.
+    if (attr.value.length > 0 || /^[A-Z]/.test(attr.value)) {
       attr.value = "'" + attr.value + "'";
     }
   });
 }
 
 function addToDoForNotMigratedDirectives(node: any) {
+  // Guard: text nodes and comment nodes have no attrs
+  if (!node.attrs) {
+    return;
+  }
+
   const directives = ["ng-message", "ng-messages", "ng-true-value", "ng-false-value", "ng-init"];
 
   directives.forEach((item, index) => {

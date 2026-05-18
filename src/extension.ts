@@ -25,35 +25,38 @@ export async function activate(context: vscode.ExtensionContext) {
 
     vscode.window.showInformationMessage('Hello ! :) ngx-plantago is active');
 
-        let disposable = vscode.commands.registerCommand('extension.ngx-plantago', async () => {
+    // Register the migration command
+    let disposable = vscode.commands.registerCommand('extension.ngx-plantago', async () => {
 
-            vscode.window.showOpenDialog(options).then(folders => {
-                if (folders) {
-                    rootAppDir = folders[0].path;
-                }
-            
+        vscode.window.showOpenDialog(options).then(folders => {
+            if (folders) {
+                rootAppDir = folders[0].path;
+            }
+
             if (rootAppDir.length > 0) {
                 const rootPath = rootAppDir + '/';
 
-            try {
-                const templatesPromise = templates(rootPath);
-    
-                if (templatesPromise) {
-                    templatesPromise.then(() => {
-                        buildPathsStorage(rootPath);
-                    });
-                }
-    
-            } catch (e) {
-                vscode.window.showErrorMessage(e);
-                vscode.window.showErrorMessage('Path error'); 
-                console.log(e);
-            }
-        }
+                try {
+                    const templatesPromise = templates(rootPath);
 
+                    if (templatesPromise) {
+                        templatesPromise.then(() => {
+                            buildPathsStorage(rootPath);
+                        });
+                    }
+
+                } catch (e) {
+                    const errorMsg = (e instanceof Error) ? e.message : String(e);
+                    vscode.window.showErrorMessage(errorMsg);
+                    vscode.window.showErrorMessage('Path error');
+                    console.log(e);
+                }
+            }
         });
-        context.subscriptions.push(disposable);
     });
+
+    // Push the disposable outside the command handler so it only runs once during activation
+    context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated
